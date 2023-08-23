@@ -18,13 +18,13 @@ console.log('inside service create booking');
   // Wrapping all of these in 1 transaction
 
   try {
-    const flight = await axios.get(
-      `${ServerConfig.FLIGHT_SERVICE}/api/v1/menu/${data.menuId}`
+    const menu = await axios.get(
+      `${ServerConfig.MENU_SERVICE}/api/v1/menu/${data.menuId}`
     );
-    const flightData = flight.data.data;
+    const menuData = menu.data.data;
   
 
-    const totalBillingAmount = data.quantity * flightData.Price;
+    const totalBillingAmount = data.quantity * menuData.Price;
     console.log(`TOTAL BILLING AMOUNT :`, totalBillingAmount);
 
     const bookingPayload = { ...data, totalCost: totalBillingAmount };
@@ -34,7 +34,7 @@ console.log('inside service create booking');
     console.log("after booking repo ")
     // This is going to create a new booking for us and will be in an `INITIATED` state and the transaction will reserve the selected number of seats for the current booking for 5 mins for the end users to actually complete the payment, if not completed the payment on time then whatever no. of seats blocked by the transaction for the current booking should be released.
     await axios.patch(
-      `${ServerConfig.FLIGHT_SERVICE}/api/v1/menu/${data.menuId}/quantity`,
+      `${ServerConfig.MENU_SERVICE}/api/v1/menu/${data.menuId}/quantity`,
       {
         quantity: data.quantity, // passing the data inside the req.body
       }
@@ -73,7 +73,7 @@ async function makePayment(data) {
       await cancelBooking(data.bookingId);
       throw new AppError("The booking has expired", StatusCodes.BAD_REQUEST);
     }
-    // The payment that we have made does not match the booking payment
+    
     if (bookingDetails.totalCost != data.totalCost) {
       throw new AppError(
         "There is a discrepancy in the amount of the payment",
@@ -86,7 +86,7 @@ async function makePayment(data) {
         StatusCodes.BAD_REQUEST
       );
     }
-    // we assume here that payment is successful
+   
     await bookingRepository.update(
       data.bookingId,
       { status: BOOKED },
@@ -94,9 +94,9 @@ async function makePayment(data) {
     );
 
   const flight = await axios.get(
-    `${ServerConfig.FLIGHT_SERVICE}/api/v1/menu/${bookingDetails.menuId}`
+    `${ServerConfig.MENU_SERVICE}/api/v1/menu/${bookingDetails.menuId}`
   );
-
+  console.log("bookingDetails.menuId ",bookingDetails.menuId)
   await transaction.commit();
 
 } catch (error) {
@@ -133,7 +133,7 @@ async function cancelBooking(bookingId) {
       return true;
     }
     await axios.patch(
-      `${ServerConfig.FLIGHT_SERVICE}/api/v1/menu/${bookingDetails.menuId}/quantity`,
+      `${ServerConfig.MENU_SERVICE}/api/v1/menu/${bookingDetails.menuId}/quantity`,
       {
         quantity: bookingDetails.quantity,
         dec: 0,
