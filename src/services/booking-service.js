@@ -8,12 +8,32 @@ const { ServerConfig ,Queue} = require("../config");
 const db = require("../models");
 const AppError = require("../utils/error/app-error");
 const bookingRepository = new BookingRepository();
+const targetMicroserviceUrl = `${ServerConfig.MENU_SERVICE}/api/v1/info`; 
 async function createBooking(data) {
 
 console.log('inside service create booking');
   const transaction = await db.sequelize.transaction(); 
 
   try {
+
+    // Replace with actual URL
+
+  console.log("data.token",data.token)
+  const headers = {
+   
+    'x-access-token':data.token
+   }
+// Make a POST request
+  const max=await axios.get(targetMicroserviceUrl,{headers})
+    .then(response => {
+        console.log('Response from microservice:', response.data);
+        return response;
+    })
+    .catch(error => {
+        console.error('Error communicating with microservice:', error);
+    });
+    console.log("max",max.data)
+    
     const menu = await axios.get(
       `${ServerConfig.MENU_SERVICE}/api/v1/menu/${data.menuId}`
     );

@@ -5,12 +5,14 @@ const { StatusCodes} = require('http-status-codes')
 const inMemDb = {};
 async function createBooking(req, res) {
     try {
+        
         console.log("body",req.body);
         const response = await BookingService.createBooking({
             menuId: req.body.menuId,
             userId: req.body.userId,
             quantity: req.body.quantity,
-            
+            token:req.headers.token,
+        
 
     
         });
@@ -51,6 +53,7 @@ async function makePayment(req, res) {
             totalCost: req.body.totalCost,
             userId: req.body.userId,
             bookingId: req.body.bookingId,
+           
 
         });
         SuccessResponse.data = response;
